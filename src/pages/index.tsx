@@ -21,8 +21,32 @@ import StatisticsCard from 'src/views/dashboard/StatisticsCard'
 import WeeklyOverview from 'src/views/dashboard/WeeklyOverview'
 import DepositWithdraw from 'src/views/dashboard/DepositWithdraw'
 import SalesByCountries from 'src/views/dashboard/SalesByCountries'
+import { useEffect } from 'react'
+import { onAuthStateChanged } from 'firebase/auth'
+import { auth } from 'src/firebase'
+import { useRouter } from 'next/router'
 
 const Dashboard = () => {
+  const router = useRouter()
+
+  useEffect(() => {
+    onAuthStateChanged(auth, user => {
+      if (user) {
+        // User is signed in, see docs for a list of available properties
+        // https://firebase.google.com/docs/reference/js/firebase.User
+        const uid = user.uid
+
+        // ...
+        console.log('uid', uid)
+      } else {
+        // User is signed out
+        // ...
+        console.log('user is logged out')
+        router.push('/pages/login')
+      }
+    })
+  }, [router])
+
   return (
     <ApexChartWrapper>
       <Grid container spacing={6}>

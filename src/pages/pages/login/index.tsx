@@ -1,5 +1,5 @@
 // ** React Imports
-import { ChangeEvent, MouseEvent, ReactNode, useState } from 'react'
+import { MouseEvent, ReactNode, useEffect } from 'react'
 
 // ** Next Imports
 import Link from 'next/link'
@@ -8,27 +8,24 @@ import { useRouter } from 'next/router'
 // ** MUI Components
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
-import Divider from '@mui/material/Divider'
-import Checkbox from '@mui/material/Checkbox'
-import TextField from '@mui/material/TextField'
-import InputLabel from '@mui/material/InputLabel'
-import Typography from '@mui/material/Typography'
-import IconButton from '@mui/material/IconButton'
-import CardContent from '@mui/material/CardContent'
-import FormControl from '@mui/material/FormControl'
-import OutlinedInput from '@mui/material/OutlinedInput'
-import { styled, useTheme } from '@mui/material/styles'
 import MuiCard, { CardProps } from '@mui/material/Card'
-import InputAdornment from '@mui/material/InputAdornment'
+import CardContent from '@mui/material/CardContent'
+import Checkbox from '@mui/material/Checkbox'
+import Divider from '@mui/material/Divider'
 import MuiFormControlLabel, { FormControlLabelProps } from '@mui/material/FormControlLabel'
+import IconButton from '@mui/material/IconButton'
+import InputAdornment from '@mui/material/InputAdornment'
+import TextField from '@mui/material/TextField'
+import Typography from '@mui/material/Typography'
+import { styled, useTheme } from '@mui/material/styles'
 
 // ** Icons Imports
-import Google from 'mdi-material-ui/Google'
-import Github from 'mdi-material-ui/Github'
-import Twitter from 'mdi-material-ui/Twitter'
-import Facebook from 'mdi-material-ui/Facebook'
-import EyeOutline from 'mdi-material-ui/EyeOutline'
 import EyeOffOutline from 'mdi-material-ui/EyeOffOutline'
+import EyeOutline from 'mdi-material-ui/EyeOutline'
+import Facebook from 'mdi-material-ui/Facebook'
+import Github from 'mdi-material-ui/Github'
+import Google from 'mdi-material-ui/Google'
+import Twitter from 'mdi-material-ui/Twitter'
 
 // ** Configs
 import themeConfig from 'src/configs/themeConfig'
@@ -37,12 +34,28 @@ import themeConfig from 'src/configs/themeConfig'
 import BlankLayout from 'src/@core/layouts/BlankLayout'
 
 // ** Demo Imports
+import { Form, Formik, FormikHelpers, FormikProps } from 'formik'
 import FooterIllustrationsV1 from 'src/views/pages/auth/FooterIllustration'
+import * as Yup from 'yup'
+import { onAuthStateChanged, signInWithEmailAndPassword } from 'firebase/auth'
+import { auth } from 'src/firebase'
 
-interface State {
+interface LoginFormValues {
+  email: string
   password: string
   showPassword: boolean
 }
+
+const initialValues: LoginFormValues = {
+  email: '',
+  password: '',
+  showPassword: false
+}
+
+const LoginSchema = Yup.object().shape({
+  email: Yup.string().email('Invalid email').required('Required'),
+  password: Yup.string().min(8, 'Too Short!').max(16, 'Too Long!').required('Required')
+})
 
 // ** Styled Components
 const Card = styled(MuiCard)<CardProps>(({ theme }) => ({
@@ -64,25 +77,43 @@ const FormControlLabel = styled(MuiFormControlLabel)<FormControlLabelProps>(({ t
 
 const LoginPage = () => {
   // ** State
-  const [values, setValues] = useState<State>({
-    password: '',
-    showPassword: false
-  })
 
   // ** Hook
   const theme = useTheme()
   const router = useRouter()
 
-  const handleChange = (prop: keyof State) => (event: ChangeEvent<HTMLInputElement>) => {
-    setValues({ ...values, [prop]: event.target.value })
-  }
+  useEffect(() => {
+    onAuthStateChanged(auth, user => {
+      if (user) {
+        // User is signed in, see docs for a list of available properties
+        // https://firebase.google.com/docs/reference/js/firebase.User
+        const uid = user.uid
 
-  const handleClickShowPassword = () => {
-    setValues({ ...values, showPassword: !values.showPassword })
-  }
+        // ...
+        console.log('uid', uid)
+        router.push('/')
+      } else {
+        // User is signed out
+        // ...
+        console.log('user is logged out')
+      }
+    })
+  }, [router])
 
-  const handleMouseDownPassword = (event: MouseEvent<HTMLButtonElement>) => {
-    event.preventDefault()
+  const handleSubmit = async (values: LoginFormValues, actions: FormikHelpers<LoginFormValues>) => {
+    alert(JSON.stringify(values, null, 2))
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, values.email, values.password)
+      const user = userCredential.user
+      console.log(user)
+      router.push('/')
+    } catch (error: any) {
+      const errorCode = error.code
+      const errorMessage = error.message
+      console.log(errorCode, errorMessage)
+    } finally {
+      actions.setSubmitting(false)
+    }
   }
 
   return (
@@ -168,83 +199,99 @@ const LoginPage = () => {
             </Typography>
             <Typography variant='body2'>Please sign-in to your account and start the adventure</Typography>
           </Box>
-          <form noValidate autoComplete='off' onSubmit={e => e.preventDefault()}>
-            <TextField autoFocus fullWidth id='email' label='Email' sx={{ marginBottom: 4 }} />
-            <FormControl fullWidth>
-              <InputLabel htmlFor='auth-login-password'>Password</InputLabel>
-              <OutlinedInput
-                label='Password'
-                value={values.password}
-                id='auth-login-password'
-                onChange={handleChange('password')}
-                type={values.showPassword ? 'text' : 'password'}
-                endAdornment={
-                  <InputAdornment position='end'>
-                    <IconButton
-                      edge='end'
-                      onClick={handleClickShowPassword}
-                      onMouseDown={handleMouseDownPassword}
-                      aria-label='toggle password visibility'
-                    >
-                      {values.showPassword ? <EyeOutline /> : <EyeOffOutline />}
+          <Formik initialValues={initialValues} onSubmit={handleSubmit} validationSchema={LoginSchema}>
+            {(props: FormikProps<LoginFormValues>) => (
+              <Form>
+                <TextField
+                  autoFocus
+                  fullWidth
+                  name='email'
+                  label='Email'
+                  sx={{ marginBottom: 4 }}
+                  value={props.values.email}
+                  onChange={props.handleChange}
+                  onBlur={props.handleBlur}
+                  error={props.touched.email && Boolean(props.errors.email)}
+                  helperText={props.touched.email && props.errors.email}
+                />
+                <TextField
+                  fullWidth
+                  name='password'
+                  label='Password'
+                  type={props.values.showPassword ? 'text' : 'password'}
+                  InputProps={{
+                    endAdornment: (
+                      <InputAdornment position='end'>
+                        <IconButton
+                          edge='end'
+                          onClick={() => props.setFieldValue('showPassword', !props.values.showPassword)}
+                        >
+                          {props.values.showPassword ? <EyeOutline /> : <EyeOffOutline />}
+                        </IconButton>
+                      </InputAdornment>
+                    )
+                  }}
+                  value={props.values.password}
+                  onChange={props.handleChange}
+                  onBlur={props.handleBlur}
+                  error={props.touched.password && Boolean(props.errors.password)}
+                  helperText={props.touched.password && props.errors.password}
+                />
+                <Box
+                  sx={{
+                    mb: 4,
+                    display: 'flex',
+                    alignItems: 'center',
+                    flexWrap: 'wrap',
+                    justifyContent: 'space-between'
+                  }}
+                >
+                  <FormControlLabel control={<Checkbox />} label='Remember Me' />
+                  <Link passHref href='/'>
+                    <LinkStyled onClick={e => e.preventDefault()}>Forgot Password?</LinkStyled>
+                  </Link>
+                </Box>
+                <Button fullWidth size='large' variant='contained' sx={{ marginBottom: 7 }} type='submit'>
+                  Login
+                </Button>
+                <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'center' }}>
+                  <Typography variant='body2' sx={{ marginRight: 2 }}>
+                    New on our platform?
+                  </Typography>
+                  <Typography variant='body2'>
+                    <Link passHref href='/pages/register'>
+                      <LinkStyled>Create an account</LinkStyled>
+                    </Link>
+                  </Typography>
+                </Box>
+                <Divider sx={{ my: 5 }}>or</Divider>
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Link href='/' passHref>
+                    <IconButton component='a' onClick={(e: MouseEvent<HTMLElement>) => e.preventDefault()}>
+                      <Facebook sx={{ color: '#497ce2' }} />
                     </IconButton>
-                  </InputAdornment>
-                }
-              />
-            </FormControl>
-            <Box
-              sx={{ mb: 4, display: 'flex', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'space-between' }}
-            >
-              <FormControlLabel control={<Checkbox />} label='Remember Me' />
-              <Link passHref href='/'>
-                <LinkStyled onClick={e => e.preventDefault()}>Forgot Password?</LinkStyled>
-              </Link>
-            </Box>
-            <Button
-              fullWidth
-              size='large'
-              variant='contained'
-              sx={{ marginBottom: 7 }}
-              onClick={() => router.push('/')}
-            >
-              Login
-            </Button>
-            <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'center' }}>
-              <Typography variant='body2' sx={{ marginRight: 2 }}>
-                New on our platform?
-              </Typography>
-              <Typography variant='body2'>
-                <Link passHref href='/pages/register'>
-                  <LinkStyled>Create an account</LinkStyled>
-                </Link>
-              </Typography>
-            </Box>
-            <Divider sx={{ my: 5 }}>or</Divider>
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Link href='/' passHref>
-                <IconButton component='a' onClick={(e: MouseEvent<HTMLElement>) => e.preventDefault()}>
-                  <Facebook sx={{ color: '#497ce2' }} />
-                </IconButton>
-              </Link>
-              <Link href='/' passHref>
-                <IconButton component='a' onClick={(e: MouseEvent<HTMLElement>) => e.preventDefault()}>
-                  <Twitter sx={{ color: '#1da1f2' }} />
-                </IconButton>
-              </Link>
-              <Link href='/' passHref>
-                <IconButton component='a' onClick={(e: MouseEvent<HTMLElement>) => e.preventDefault()}>
-                  <Github
-                    sx={{ color: theme => (theme.palette.mode === 'light' ? '#272727' : theme.palette.grey[300]) }}
-                  />
-                </IconButton>
-              </Link>
-              <Link href='/' passHref>
-                <IconButton component='a' onClick={(e: MouseEvent<HTMLElement>) => e.preventDefault()}>
-                  <Google sx={{ color: '#db4437' }} />
-                </IconButton>
-              </Link>
-            </Box>
-          </form>
+                  </Link>
+                  <Link href='/' passHref>
+                    <IconButton component='a' onClick={(e: MouseEvent<HTMLElement>) => e.preventDefault()}>
+                      <Twitter sx={{ color: '#1da1f2' }} />
+                    </IconButton>
+                  </Link>
+                  <Link href='/' passHref>
+                    <IconButton component='a' onClick={(e: MouseEvent<HTMLElement>) => e.preventDefault()}>
+                      <Github
+                        sx={{ color: theme => (theme.palette.mode === 'light' ? '#272727' : theme.palette.grey[300]) }}
+                      />
+                    </IconButton>
+                  </Link>
+                  <Link href='/' passHref>
+                    <IconButton component='a' onClick={(e: MouseEvent<HTMLElement>) => e.preventDefault()}>
+                      <Google sx={{ color: '#db4437' }} />
+                    </IconButton>
+                  </Link>
+                </Box>
+              </Form>
+            )}
+          </Formik>
         </CardContent>
       </Card>
       <FooterIllustrationsV1 />

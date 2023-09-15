@@ -92,7 +92,7 @@ const RegisterPage = () => {
 
   // ** Hook
   const theme = useTheme()
-  const router = useRouter();
+  const router = useRouter()
 
   useEffect(() => {
     onAuthStateChanged(auth, user => {

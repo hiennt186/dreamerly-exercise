@@ -37,8 +37,9 @@ import { Form, Formik, FormikHelpers, FormikProps } from 'formik'
 import FooterIllustrationsV1 from 'src/views/pages/auth/FooterIllustration'
 import * as Yup from 'yup'
 import { createUserWithEmailAndPassword, onAuthStateChanged } from 'firebase/auth'
-import { auth } from 'src/firebase'
+import { auth, db } from 'src/firebase'
 import { useRouter } from 'next/router'
+import { addDoc, collection } from 'firebase/firestore'
 
 interface RegisterFormValues {
   username: string
@@ -113,11 +114,16 @@ const RegisterPage = () => {
   }, [router])
 
   const handleSubmit = async (values: RegisterFormValues, actions: FormikHelpers<RegisterFormValues>) => {
-    alert(JSON.stringify(values, null, 2))
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password)
       const user = userCredential.user
       console.log(user)
+      const res = await addDoc(collection(db, 'users'), {
+        name: values.username,
+        email: values.email,
+        firebase_id: user.uid
+      })
+      console.log({ res })
       router.push('/pages/login')
     } catch (error: any) {
       const errorCode = error.code

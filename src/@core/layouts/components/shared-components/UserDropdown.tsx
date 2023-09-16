@@ -1,5 +1,5 @@
 // ** React Imports
-import { useState, SyntheticEvent, Fragment } from 'react'
+import { useState, SyntheticEvent, Fragment, useEffect } from 'react'
 
 // ** Next Import
 import { useRouter } from 'next/router'
@@ -22,8 +22,10 @@ import LogoutVariant from 'mdi-material-ui/LogoutVariant'
 import AccountOutline from 'mdi-material-ui/AccountOutline'
 import MessageOutline from 'mdi-material-ui/MessageOutline'
 import HelpCircleOutline from 'mdi-material-ui/HelpCircleOutline'
-import { auth } from 'src/firebase'
-import { signOut } from 'firebase/auth'
+import { auth, db } from 'src/firebase'
+import { onAuthStateChanged, signOut } from 'firebase/auth'
+import { collection, getDocs, query, where } from 'firebase/firestore'
+import { User } from 'src/types/User'
 
 // ** Styled Components
 const BadgeContentSpan = styled('span')(({ theme }) => ({
@@ -37,9 +39,45 @@ const BadgeContentSpan = styled('span')(({ theme }) => ({
 const UserDropdown = () => {
   // ** States
   const [anchorEl, setAnchorEl] = useState<Element | null>(null)
+  const [user, setUser] = useState<User | null>(null)
 
   // ** Hooks
   const router = useRouter()
+
+  useEffect(() => {
+    onAuthStateChanged(auth, async user => {
+      if (user) {
+        // User is signed in, see docs for a list of available properties
+        // https://firebase.google.com/docs/reference/js/firebase.User
+        const uid = user.uid
+
+        // ...
+        console.log('uid', uid)
+
+        const res = await getDocs(query(collection(db, 'users'), where('firebase_id', '==', uid))).then(
+          querySnapshot => {
+            querySnapshot.forEach(doc => {
+              // Access the document data
+              const data = doc.data()
+              console.log(data)
+              setUser({
+                id: doc.id,
+                name: data.name,
+                email: data.email,
+                firebase_id: data.firebase_id
+              })
+            })
+          }
+        )
+        console.log('res', res)
+      } else {
+        // User is signed out
+        // ...
+        console.log('user is logged out')
+        router.push('/pages/login')
+      }
+    })
+  }, [router])
 
   const handleDropdownOpen = (event: SyntheticEvent) => {
     setAnchorEl(event.currentTarget)
@@ -88,7 +126,7 @@ const UserDropdown = () => {
         anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
       >
         <Avatar
-          alt='John Doe'
+          alt={user?.name}
           onClick={handleDropdownOpen}
           sx={{ width: 40, height: 40 }}
           src='/images/avatars/1.png'
@@ -98,7 +136,7 @@ const UserDropdown = () => {
         anchorEl={anchorEl}
         open={Boolean(anchorEl)}
         onClose={() => handleDropdownClose()}
-        sx={{ '& .MuiMenu-paper': { width: 230, marginTop: 4 } }}
+        sx={{ '& .MuiMenu-paper': { minWidth: 230, marginTop: 4 } }}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
         transformOrigin={{ vertical: 'top', horizontal: 'right' }}
       >
@@ -109,12 +147,12 @@ const UserDropdown = () => {
               badgeContent={<BadgeContentSpan />}
               anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
             >
-              <Avatar alt='John Doe' src='/images/avatars/1.png' sx={{ width: '2.5rem', height: '2.5rem' }} />
+              <Avatar alt={user?.name} src='/images/avatars/1.png' sx={{ width: '2.5rem', height: '2.5rem' }} />
             </Badge>
             <Box sx={{ display: 'flex', marginLeft: 3, alignItems: 'flex-start', flexDirection: 'column' }}>
-              <Typography sx={{ fontWeight: 600 }}>John Doe</Typography>
+              <Typography sx={{ fontWeight: 600 }}>{user?.name}</Typography>
               <Typography variant='body2' sx={{ fontSize: '0.8rem', color: 'text.disabled' }}>
-                Admin
+                {user?.email}
               </Typography>
             </Box>
           </Box>

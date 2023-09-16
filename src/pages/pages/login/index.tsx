@@ -101,7 +101,6 @@ const LoginPage = () => {
   }, [router])
 
   const handleSubmit = async (values: LoginFormValues, actions: FormikHelpers<LoginFormValues>) => {
-    alert(JSON.stringify(values, null, 2))
     try {
       const userCredential = await signInWithEmailAndPassword(auth, values.email, values.password)
       const user = userCredential.user

@@ -1,0 +1,96 @@
+// ** MUI Imports
+import Grid from '@mui/material/Grid'
+import Typography from '@mui/material/Typography'
+import { useCallback, useEffect } from 'react'
+import { useAuthContext } from 'src/@core/context/authContext'
+import { useAppDispatch, useAppSelector } from 'src/@core/hooks/redux'
+import { getChatsByParticipantId, setSelectedChat } from 'src/@core/slices/chat'
+import { Chat } from 'src/@core/types/Chat'
+import NewChatButton from './NewChatButton'
+import { Box } from '@mui/material'
+
+const ChatList = () => {
+  const { currentUser } = useAuthContext()
+  const dispatch = useAppDispatch()
+  const chatList = useAppSelector(state => state.chat.chatList)
+  const selectedChat = useAppSelector(state => state.chat.selectedChat)
+
+  const fetchChats = useCallback(async () => {
+    if (currentUser) {
+      dispatch(getChatsByParticipantId(currentUser.id))
+    }
+  }, [currentUser, dispatch])
+
+  useEffect(() => {
+    fetchChats()
+  }, [fetchChats])
+
+  const handleSelectChat = (chat: Chat) => async () => {
+    dispatch(setSelectedChat(chat))
+  }
+
+  return (
+    <Box
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        borderRight: 1,
+        borderColor: 'grey.300',
+        height: '100%'
+      }}
+    >
+      <Box sx={{ textAlign: 'center', p: 4 }}>
+        <NewChatButton />
+      </Box>
+      <Grid
+        container
+        sx={{
+          flex: 1,
+          p: 4,
+          flexDirection: 'column',
+          flexWrap: 'nowrap',
+          overflowY: 'auto'
+        }}
+        gap={2}
+      >
+        {chatList.map(item => {
+          const chatUser = item?.participants?.find(participant => participant.id !== currentUser?.id)
+
+          return (
+            <Grid
+              item
+              key={item.id}
+              sx={{
+                cursor: 'pointer',
+                borderRadius: 1,
+                '&:hover': {
+                  bgcolor: 'grey.100'
+                },
+                bgcolor: item.id === selectedChat?.id ? 'grey.100' : 'white',
+                transition: 0.5,
+                px: 4,
+                py: 2
+              }}
+              onClick={handleSelectChat(item)}
+            >
+              <Typography variant='body1'>{chatUser?.name}</Typography>
+              <Typography
+                variant='body2'
+                sx={{
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                  overflowX: 'hidden'
+                }}
+              >
+                {item.lastMessage?.[0]?.content}
+              </Typography>
+              <Typography variant='overline'>{item.lastMessage?.[0]?.timestamp}</Typography>
+            </Grid>
+          )
+        })}
+      </Grid>
+    </Box>
+  )
+}
+
+export default ChatList

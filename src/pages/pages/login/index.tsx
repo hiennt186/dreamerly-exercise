@@ -1,5 +1,5 @@
 // ** React Imports
-import { MouseEvent, ReactNode, useEffect } from 'react'
+import { MouseEvent, ReactNode } from 'react'
 
 // ** Next Imports
 import Link from 'next/link'
@@ -34,11 +34,13 @@ import themeConfig from 'src/configs/themeConfig'
 import BlankLayout from 'src/@core/layouts/BlankLayout'
 
 // ** Demo Imports
+import { signInWithEmailAndPassword } from 'firebase/auth'
 import { Form, Formik, FormikHelpers, FormikProps } from 'formik'
+import { withNonAuth } from 'src/@core/context/authContext'
+import { handleError } from 'src/@core/utils/error'
+import { auth } from 'src/firebase'
 import FooterIllustrationsV1 from 'src/views/pages/auth/FooterIllustration'
 import * as Yup from 'yup'
-import { onAuthStateChanged, signInWithEmailAndPassword } from 'firebase/auth'
-import { auth } from 'src/firebase'
 
 interface LoginFormValues {
   email: string
@@ -82,34 +84,12 @@ const LoginPage = () => {
   const theme = useTheme()
   const router = useRouter()
 
-  useEffect(() => {
-    onAuthStateChanged(auth, user => {
-      if (user) {
-        // User is signed in, see docs for a list of available properties
-        // https://firebase.google.com/docs/reference/js/firebase.User
-        const uid = user.uid
-
-        // ...
-        console.log('uid', uid)
-        router.push('/')
-      } else {
-        // User is signed out
-        // ...
-        console.log('user is logged out')
-      }
-    })
-  }, [router])
-
   const handleSubmit = async (values: LoginFormValues, actions: FormikHelpers<LoginFormValues>) => {
     try {
-      const userCredential = await signInWithEmailAndPassword(auth, values.email, values.password)
-      const user = userCredential.user
-      console.log(user)
+      await signInWithEmailAndPassword(auth, values.email, values.password)
       router.push('/')
     } catch (error: any) {
-      const errorCode = error.code
-      const errorMessage = error.message
-      console.log(errorCode, errorMessage)
+      handleError(error)
     } finally {
       actions.setSubmitting(false)
     }
@@ -300,4 +280,4 @@ const LoginPage = () => {
 
 LoginPage.getLayout = (page: ReactNode) => <BlankLayout>{page}</BlankLayout>
 
-export default LoginPage
+export default withNonAuth(LoginPage)

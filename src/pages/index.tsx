@@ -2,10 +2,10 @@
 import Grid from '@mui/material/Grid'
 
 // ** Icons Imports
-import Poll from 'mdi-material-ui/Poll'
+import BriefcaseVariantOutline from 'mdi-material-ui/BriefcaseVariantOutline'
 import CurrencyUsd from 'mdi-material-ui/CurrencyUsd'
 import HelpCircleOutline from 'mdi-material-ui/HelpCircleOutline'
-import BriefcaseVariantOutline from 'mdi-material-ui/BriefcaseVariantOutline'
+import Poll from 'mdi-material-ui/Poll'
 
 // ** Custom Components Imports
 import CardStatisticsVerticalComponent from 'src/@core/components/card-statistics/card-stats-vertical'
@@ -14,39 +14,15 @@ import CardStatisticsVerticalComponent from 'src/@core/components/card-statistic
 import ApexChartWrapper from 'src/@core/styles/libs/react-apexcharts'
 
 // ** Demo Components Imports
-import Table from 'src/views/dashboard/Table'
-import Trophy from 'src/views/dashboard/Trophy'
-import TotalEarning from 'src/views/dashboard/TotalEarning'
-import StatisticsCard from 'src/views/dashboard/StatisticsCard'
-import WeeklyOverview from 'src/views/dashboard/WeeklyOverview'
 import DepositWithdraw from 'src/views/dashboard/DepositWithdraw'
 import SalesByCountries from 'src/views/dashboard/SalesByCountries'
-import { useEffect } from 'react'
-import { onAuthStateChanged } from 'firebase/auth'
-import { auth } from 'src/firebase'
-import { useRouter } from 'next/router'
+import StatisticsCard from 'src/views/dashboard/StatisticsCard'
+import Table from 'src/views/dashboard/Table'
+import TotalEarning from 'src/views/dashboard/TotalEarning'
+import Trophy from 'src/views/dashboard/Trophy'
+import WeeklyOverview from 'src/views/dashboard/WeeklyOverview'
 
 const Dashboard = () => {
-  const router = useRouter()
-
-  useEffect(() => {
-    onAuthStateChanged(auth, user => {
-      if (user) {
-        // User is signed in, see docs for a list of available properties
-        // https://firebase.google.com/docs/reference/js/firebase.User
-        const uid = user.uid
-
-        // ...
-        console.log('uid', uid)
-      } else {
-        // User is signed out
-        // ...
-        console.log('user is logged out')
-        router.push('/pages/login')
-      }
-    })
-  }, [router])
-
   return (
     <ApexChartWrapper>
       <Grid container spacing={6}>

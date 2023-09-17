@@ -22,6 +22,7 @@
     "@mui/lab": "^5.0.0-alpha.70",
     "@mui/material": "^5.4.3",
     "@popperjs/core": "^2.11.2",
+    "@reduxjs/toolkit": "^1.9.5",
     "apexcharts-clevision": "3.28.5",
     "clsx": "^1.1.1",
     "firebase": "^10.3.1",
@@ -35,9 +36,11 @@
     "react-dom": "17.0.2",
     "react-perfect-scrollbar": "^1.5.8",
     "react-popper": "^2.2.5",
+    "react-redux": "^8.1.2",
     "yup": "^1.2.0"
   },
   "devDependencies": {
+    "@types/lodash": "^4.14.198",
     "@types/node": "16.11.11",
     "@types/nprogress": "^0.2.0",
     "@types/react": "17.0.37",

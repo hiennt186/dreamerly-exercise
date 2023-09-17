@@ -4,6 +4,7 @@ import { User } from 'src/@core/types/User'
 import userService from '../services/user.service'
 import { auth } from 'src/firebase'
 import { useRouter } from 'next/router'
+import { NextPage } from 'next'
 
 export type AuthContextValue = {
   isLoading: boolean
@@ -47,7 +48,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
 export const useAuthContext = () => useContext(AuthContext)
 
-export const withAuth = (Component: FC) => {
+export const withAuth = (Component: FC): NextPage => {
   return (props: any) => {
     const { isAuthenticated, isLoading } = useAuthContext()
     const router = useRouter()
@@ -62,8 +63,8 @@ export const withAuth = (Component: FC) => {
   }
 }
 
-export const withNonAuth = (Component: FC) => {
-  return (props: any) => {
+export const withNonAuth = (Component: FC): NextPage => {
+  return () => {
     const { isAuthenticated, isLoading } = useAuthContext()
     const router = useRouter()
 
@@ -73,6 +74,6 @@ export const withNonAuth = (Component: FC) => {
       }
     }, [isAuthenticated, isLoading, router])
 
-    return <Component {...props} />
+    return <Component />
   }
 }

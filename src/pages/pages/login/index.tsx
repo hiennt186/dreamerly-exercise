@@ -77,7 +77,7 @@ const FormControlLabel = styled(MuiFormControlLabel)<FormControlLabelProps>(({ t
   }
 }))
 
-const LoginPage = () => {
+const LoginPage = withNonAuth(() => {
   // ** State
 
   // ** Hook
@@ -276,8 +276,8 @@ const LoginPage = () => {
       <FooterIllustrationsV1 />
     </Box>
   )
-}
+})
 
 LoginPage.getLayout = (page: ReactNode) => <BlankLayout>{page}</BlankLayout>
 
-export default withNonAuth(LoginPage)
+export default LoginPage

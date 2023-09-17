@@ -90,7 +90,7 @@ const RegisterSchema = Yup.object().shape({
     .required('Required')
 })
 
-const RegisterPage = () => {
+const RegisterPage = withNonAuth(() => {
   // ** States
 
   // ** Hook
@@ -338,8 +338,8 @@ const RegisterPage = () => {
       <FooterIllustrationsV1 />
     </Box>
   )
-}
+})
 
 RegisterPage.getLayout = (page: ReactNode) => <BlankLayout>{page}</BlankLayout>
 
-export default withNonAuth(RegisterPage)
+export default RegisterPage

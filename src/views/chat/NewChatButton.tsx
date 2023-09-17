@@ -29,6 +29,9 @@ const NewChatButton = () => {
 
   const handleClickNewChat = async (event: React.MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget)
+    if (currentUser?.id) {
+      dispatch(getUsersForChat(currentUser?.id))
+    }
   }
   const handleCreateChat = (userId: string) => async () => {
     if (currentUser) {

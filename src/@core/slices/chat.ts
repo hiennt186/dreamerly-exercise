@@ -1,8 +1,9 @@
 import { PayloadAction, createAsyncThunk, createSlice } from '@reduxjs/toolkit'
+import chatService from '../services/chat.service'
 import userService from '../services/user.service'
 import { Chat, CreateChat, Message } from '../types/Chat'
 import { User } from '../types/User'
-import chatService from '../services/chat.service'
+import { RootState } from 'src/store'
 
 export interface ChatState {
   selectedChat: Partial<Chat> | null
@@ -64,8 +65,9 @@ export const getMessagesByChatId = createAsyncThunk('chats/getMessagesByChatId',
 })
 
 export const getUsersForChat = createAsyncThunk('chats/getUsersForChat', async (currentUserId: string, thunkAPI) => {
-  const state = thunkAPI.getState() as ChatState
-  const participantIds = state.chatList.reduce((result: string[], item) => {
+  const state = thunkAPI.getState() as RootState
+  console.log({ state })
+  const participantIds = state.chat.chatList.reduce((result: string[], item) => {
     return result.concat(item.participant_ids)
   }, [])
   const users = await userService.getForChat(currentUserId, participantIds)

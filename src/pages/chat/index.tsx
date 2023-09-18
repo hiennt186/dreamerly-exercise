@@ -5,15 +5,17 @@ import { Box, Card } from '@mui/material'
 import { useEffect } from 'react'
 import { useAuthContext, withAuth } from 'src/@core/context/authContext'
 import { useAppDispatch, useAppSelector } from 'src/@core/hooks/redux'
-import { getChatsByParticipantId, getMessagesByChatId } from 'src/@core/slices/chat'
+import { getConventonsByUserId, getMessagesByConventionId } from 'src/@core/slices/chat'
+import { handleError } from 'src/@core/utils/error'
 import { pusher } from 'src/pusher'
 import ChatContent from 'src/views/chat/ChatContent'
 import ChatList from 'src/views/chat/ChatList'
 
 const ChatPage = withAuth(() => {
-  const selectedChat = useAppSelector(state => state.chat.selectedChat)
+  const selectedChat = useAppSelector(state => state.chat.selectedConvention)
   const { currentUser } = useAuthContext()
   const dispatch = useAppDispatch()
+  const error = useAppSelector(state => state.chat.error)
 
   useEffect(() => {
     if (currentUser?.id) {
@@ -24,10 +26,10 @@ const ChatPage = withAuth(() => {
       if (channel) {
         channel.bind(eventName, function () {
           if (currentUser?.id) {
-            dispatch(getChatsByParticipantId(currentUser.id))
+            dispatch(getConventonsByUserId(currentUser.id))
           }
           if (selectedChat?.id) {
-            dispatch(getMessagesByChatId(selectedChat.id))
+            dispatch(getMessagesByConventionId(selectedChat.id))
           }
         })
 
@@ -38,6 +40,12 @@ const ChatPage = withAuth(() => {
       }
     }
   }, [currentUser?.id, dispatch, selectedChat?.id])
+
+  useEffect(() => {
+    if (error) {
+      handleError(error)
+    }
+  }, [error])
 
   return (
     <Card sx={{ height: 'calc(100vh - 64px - 56px - 3rem)' }}>

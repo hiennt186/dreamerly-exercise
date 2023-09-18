@@ -1,36 +1,34 @@
-import { addDoc, collection, doc, documentId, getDoc, getDocs, query, where } from 'firebase/firestore'
-import { CreateUser, User } from 'src/@core/types/User'
+import { addDoc, collection, doc, getDoc, getDocs, limit, query, where } from 'firebase/firestore'
+import { User } from 'src/@core/types/User'
 import { db } from 'src/firebase'
+import { collections } from '../constants/firestore'
 
 class UserService {
-  COLLECTION_NAME = 'users'
-  CHAT_COLLECTION_NAME = 'chats'
-
-  async create(createUser: CreateUser) {
-    const docRef = await addDoc(collection(db, this.COLLECTION_NAME), createUser)
+  async create(user: Partial<User>) {
+    const docRef = await addDoc(collection(db, collections.USERS), user)
 
     return docRef.id
   }
 
   async getByFirebaseId(firebaseId: string) {
-    const users: User[] = []
-
-    const collectionRef = collection(db, this.COLLECTION_NAME)
-    const q = query(collectionRef, where('firebase_id', '==', firebaseId))
+    const collectionRef = collection(db, collections.USERS)
+    const q = query(collectionRef, where('firebase_id', '==', firebaseId), limit(1))
     const querySnapshot = await getDocs(q)
 
-    querySnapshot.forEach(doc => {
-      users.push({
-        id: doc.id,
-        ...doc.data()
-      } as User)
-    })
+    if (!querySnapshot.docs.length) {
+      return null
+    }
 
-    return users
+    const docRef = querySnapshot.docs[0]
+
+    return {
+      id: docRef.id,
+      ...docRef.data()
+    } as User
   }
 
   async get(userId: string) {
-    const docRef = await getDoc(doc(db, this.COLLECTION_NAME, userId))
+    const docRef = await getDoc(doc(db, collections.USERS, userId))
 
     if (!docRef.exists()) {
       return null
@@ -42,12 +40,10 @@ class UserService {
     } as User
   }
 
-  async getForChat(currentUserId: string, participantIds: string[] = []) {
+  async getList() {
     const users: User[] = []
 
-    const collectionRef = collection(db, this.COLLECTION_NAME)
-    const q = query(collectionRef, where(documentId(), 'not-in', [currentUserId, ...participantIds]))
-    const querySnapshot = await getDocs(q)
+    const querySnapshot = await getDocs(collection(db, collections.USERS))
 
     querySnapshot.forEach(doc => {
       users.push({

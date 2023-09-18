@@ -4,32 +4,30 @@ import Grid from '@mui/material/Grid'
 import { useCallback, useEffect } from 'react'
 import { useAuthContext } from 'src/@core/context/authContext'
 import { useAppDispatch, useAppSelector } from 'src/@core/hooks/redux'
-import { getMessagesByChatId } from 'src/@core/slices/chat'
+import { getMessagesByConventionId } from 'src/@core/slices/chat'
 import ChatBox from './ChatBox'
 
 const ChatContent = () => {
   const { currentUser } = useAuthContext()
-  const selectedChat = useAppSelector(state => state.chat.selectedChat)
+  const selectedConvention = useAppSelector(state => state.chat.selectedConvention)
   const messages = useAppSelector(state => state.chat.messageList)
   const dispatch = useAppDispatch()
 
   const fetchMessages = useCallback(async () => {
-    if (selectedChat?.id) {
-      dispatch(getMessagesByChatId(selectedChat.id))
+    if (selectedConvention?.id) {
+      dispatch(getMessagesByConventionId(selectedConvention.id))
     }
-  }, [dispatch, selectedChat?.id])
+  }, [dispatch, selectedConvention?.id])
 
   useEffect(() => {
     fetchMessages()
   }, [fetchMessages])
 
-  const chatUser = selectedChat?.participants?.find(participant => participant.id !== currentUser?.id)
-
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       <Box sx={{ p: 4, borderBottom: 1, borderColor: 'grey.300' }}>
-        <Typography variant='h6'>{chatUser?.name}</Typography>
-        <Typography variant='subtitle2'>{chatUser?.email}</Typography>
+        <Typography variant='h6'>{selectedConvention?.chatUser?.name}</Typography>
+        <Typography variant='subtitle2'>{selectedConvention?.chatUser?.email}</Typography>
       </Box>
       <Grid
         container
@@ -58,14 +56,6 @@ const ChatContent = () => {
                 }}
               >
                 {item.content}
-              </Typography>
-              <Typography
-                variant='overline'
-                sx={{
-                  color: isSender ? 'white' : 'black'
-                }}
-              >
-                {item.timestamp}
               </Typography>
             </Grid>
           )

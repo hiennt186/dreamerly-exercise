@@ -3,10 +3,5 @@ export interface User {
   name: string
   email: string
   firebase_id: string
-}
-
-export interface CreateUser {
-  name: string
-  email: string
-  firebase_id: string
+  fcm_token: string
 }

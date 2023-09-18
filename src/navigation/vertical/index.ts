@@ -16,14 +16,14 @@ import { VerticalNavItemsType } from 'src/@core/layouts/types'
 const navigation = (): VerticalNavItemsType => {
   return [
     {
-      title: 'Dashboard',
-      icon: HomeOutline,
-      path: '/'
-    },
-    {
       title: 'Chat',
       icon: HomeOutline,
       path: '/chat'
+    },
+    {
+      title: 'Dashboard',
+      icon: HomeOutline,
+      path: '/'
     },
     {
       title: 'Account Settings',

@@ -1,3 +1,3 @@
-export const handleError = (error: Error) => {
+export const handleError = (error: Error | string) => {
   console.log({ error })
 }

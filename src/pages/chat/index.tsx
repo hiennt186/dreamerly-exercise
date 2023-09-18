@@ -2,7 +2,8 @@
 
 // ** Demo Components Imports
 import { Box, Card } from '@mui/material'
-import { useEffect } from 'react'
+import { Channel } from 'pusher-js'
+import { useEffect, useState } from 'react'
 import { useAuthContext, withAuth } from 'src/@core/context/authContext'
 import { useAppDispatch, useAppSelector } from 'src/@core/hooks/redux'
 import { getConventonsByUserId, getMessagesByConventionId } from 'src/@core/slices/chat'
@@ -16,12 +17,23 @@ const ChatPage = withAuth(() => {
   const { currentUser } = useAuthContext()
   const dispatch = useAppDispatch()
   const error = useAppSelector(state => state.chat.error)
+  const [channel, setChannel] = useState<Channel | null>(null)
 
   useEffect(() => {
     if (currentUser?.id) {
       const channelName = `private-user-${currentUser?.id}`
-      const eventName = 'client-new-message'
       const channel = pusher.subscribe(channelName)
+      setChannel(channel)
+
+      return () => {
+        pusher.unsubscribe(channelName)
+      }
+    }
+  }, [currentUser?.id, dispatch])
+
+  useEffect(() => {
+    if (currentUser?.id) {
+      const eventName = 'client-new-message'
 
       if (channel) {
         channel.bind(eventName, function () {
@@ -35,11 +47,10 @@ const ChatPage = withAuth(() => {
 
         return () => {
           channel.unbind(eventName)
-          pusher.unsubscribe(channelName)
         }
       }
     }
-  }, [currentUser?.id, dispatch, selectedConvention?.id])
+  }, [channel, currentUser?.id, dispatch, selectedConvention?.id])
 
   useEffect(() => {
     if (error) {

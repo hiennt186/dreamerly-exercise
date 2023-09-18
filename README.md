@@ -41,6 +41,7 @@ http://localhost:3000/chat/
 ## Known Issues
 Due to time constraints, the following features have not been implemented yet:
 
-- Notification system: Currently, the application does not have a notification feature to alert users of new messages.
-- Pagination: The chat functionality lacks pagination for displaying a large number of messages.
-- Read and Unread Status: The application does not track whether a message has been read or is still unread.
+- Notification feature has not been implemented.
+- Pagination for chat messages is missing.
+- Read and Unread message tracking is not available.
+- The application is not fully responsive.

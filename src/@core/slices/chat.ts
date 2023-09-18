@@ -50,7 +50,7 @@ export const getChatsByParticipantId = createAsyncThunk(
         element.participants = participants.filter(item => item !== null) as User[]
 
         const lastMessage = await chatService.getLastMessagesByChatId(element.id)
-        element.lastMessage = lastMessage
+        element.lastMessage = lastMessage?.[0]
       }
     }
 

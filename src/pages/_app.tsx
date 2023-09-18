@@ -32,6 +32,7 @@ import '../../styles/globals.css'
 import { Provider } from 'react-redux'
 import { store } from 'src/store'
 import { AuthProvider } from 'src/@core/context/authContext'
+import { useEffect } from 'react'
 
 // ** Extend App Props with Emotion
 type ExtendedAppProps = AppProps & {
@@ -60,6 +61,15 @@ const App = (props: ExtendedAppProps) => {
 
   // Variables
   const getLayout = Component.getLayout ?? (page => <UserLayout>{page}</UserLayout>)
+
+  useEffect(() => {
+    console.log('Requesting permission...')
+    Notification.requestPermission().then(permission => {
+      if (permission === 'granted') {
+        console.log('Notification permission granted.')
+      }
+    })
+  }, [])
 
   return (
     <CacheProvider value={emotionCache}>

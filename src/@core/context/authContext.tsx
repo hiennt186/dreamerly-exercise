@@ -2,9 +2,10 @@ import { onAuthStateChanged } from 'firebase/auth'
 import { FC, ReactNode, createContext, useContext, useEffect, useState } from 'react'
 import { User } from 'src/@core/types/User'
 import userService from '../services/user.service'
-import { auth } from 'src/firebase'
+import app, { auth } from 'src/firebase'
 import { useRouter } from 'next/router'
 import { NextPage } from 'next'
+import { getMessaging, getToken, onMessage } from 'firebase/messaging'
 
 export type AuthContextValue = {
   isLoading: boolean
@@ -32,8 +33,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
         const uid = user.uid
         const users = await userService.getByFirebaseId(uid)
+
         if (users.length) {
-          setCurrentUser(users[0])
+          const user = users[0]
+          const messaging = getMessaging(app)
+          const token = await getToken(messaging, {
+            vapidKey: 'BPUOPmBKMDeKW7EjQz8-CAEXV-xXuyjjS1h-lTP3wawMyuscfps7AWfDZMkc5sZ602Cv-Z1SaYqehweC1NoSvF0'
+          })
+          console.log({ token })
+          onMessage(messaging, payload => {
+            console.log('Message received. ', payload)
+          })
+
+          userService.update(user.id, {
+            fcm_token: token
+          })
+          setCurrentUser(user)
         }
       } else {
         setIsAuthenticated(false)

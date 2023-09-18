@@ -2,10 +2,12 @@
 
 // ** Demo Components Imports
 import { Box, Card } from '@mui/material'
-import { useEffect } from 'react'
+import { useCallback, useEffect } from 'react'
 import { useAuthContext, withAuth } from 'src/@core/context/authContext'
 import { useAppDispatch, useAppSelector } from 'src/@core/hooks/redux'
+import chatService from 'src/@core/services/chat.service'
 import { getChatsByParticipantId, getMessagesByChatId } from 'src/@core/slices/chat'
+import { handleError } from 'src/@core/utils/error'
 import { pusher } from 'src/pusher'
 import ChatContent from 'src/views/chat/ChatContent'
 import ChatList from 'src/views/chat/ChatList'
@@ -23,11 +25,10 @@ const ChatPage = withAuth(() => {
 
       if (channel) {
         channel.bind(eventName, function () {
-          if (currentUser?.id) {
-            dispatch(getChatsByParticipantId(currentUser.id))
-          }
+          dispatch(getChatsByParticipantId(currentUser.id))
           if (selectedChat?.id) {
             dispatch(getMessagesByChatId(selectedChat.id))
+            chatService.updateReadMessagesByChatId(selectedChat.id, currentUser.id)
           }
         })
 
@@ -38,6 +39,21 @@ const ChatPage = withAuth(() => {
       }
     }
   }, [currentUser?.id, dispatch, selectedChat?.id])
+
+  const updateReadMessages = useCallback(async () => {
+    try {
+      if (selectedChat?.id && currentUser?.id) {
+        await chatService.updateReadMessagesByChatId(selectedChat.id, currentUser.id)
+        dispatch(getChatsByParticipantId(currentUser.id))
+      }
+    } catch (error: any) {
+      handleError(error)
+    }
+  }, [currentUser?.id, dispatch, selectedChat?.id])
+
+  useEffect(() => {
+    updateReadMessages()
+  }, [updateReadMessages])
 
   return (
     <Card sx={{ height: 'calc(100vh - 64px - 56px - 3rem)' }}>

@@ -5,7 +5,7 @@ export interface Chat {
   participant_ids: string[]
 
   participants?: User[]
-  lastMessage?: Message[]
+  lastMessage?: Message
 }
 
 export interface CreateChat {

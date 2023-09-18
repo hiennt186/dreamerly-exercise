@@ -1,4 +1,4 @@
-import { addDoc, collection, getDocs, limit, orderBy, query, where } from 'firebase/firestore'
+import { addDoc, collection, doc, getDocs, limit, orderBy, query, updateDoc, where } from 'firebase/firestore'
 import { db } from 'src/firebase'
 import { Chat, CreateChat, CreateMessage, Message } from '../types/Chat'
 
@@ -68,6 +68,22 @@ class ChatService {
     })
 
     return messages
+  }
+
+  async updateReadMessagesByChatId(chatId: string, currentUserId: string) {
+    const collectionRef = collection(db, `${this.COLLECTION_NAME}/${chatId}/${this.MESSAGE_COLLECTION_NAME}`)
+    console.log('updateReadMessagesByChatId', chatId, currentUserId)
+    const q = query(collectionRef, where('sender_id', '!=', currentUserId))
+    const querySnapshot = await getDocs(q)
+
+    querySnapshot.forEach(snapshot => {
+      console.log('updateReadMessagesByChatId', snapshot.data().sender_id)
+      const docRef = doc(db, `${this.COLLECTION_NAME}/${chatId}/${this.MESSAGE_COLLECTION_NAME}`, snapshot.id)
+
+      return updateDoc(docRef, {
+        read: true
+      })
+    })
   }
 }
 

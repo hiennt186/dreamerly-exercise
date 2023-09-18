@@ -3,6 +3,7 @@ export interface User {
   name: string
   email: string
   firebase_id: string
+  fcm_token: string
 }
 
 export interface CreateUser {

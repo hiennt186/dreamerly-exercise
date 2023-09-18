@@ -1,13 +1,15 @@
 // ** MUI Imports
+import { Box } from '@mui/material'
 import Grid from '@mui/material/Grid'
 import Typography from '@mui/material/Typography'
+import dayjs from 'dayjs'
 import { useCallback, useEffect } from 'react'
 import { useAuthContext } from 'src/@core/context/authContext'
 import { useAppDispatch, useAppSelector } from 'src/@core/hooks/redux'
 import { getChatsByParticipantId, setSelectedChat } from 'src/@core/slices/chat'
 import { Chat } from 'src/@core/types/Chat'
+import { formatDate } from 'src/@core/utils/date'
 import NewChatButton from './NewChatButton'
-import { Box } from '@mui/material'
 
 const ChatList = () => {
   const { currentUser } = useAuthContext()
@@ -55,6 +57,7 @@ const ChatList = () => {
       >
         {chatList.map(item => {
           const chatUser = item?.participants?.find(participant => participant.id !== currentUser?.id)
+          const isUnread = item.lastMessage?.sender_id !== currentUser?.id && !item.lastMessage?.read
 
           return (
             <Grid
@@ -73,18 +76,33 @@ const ChatList = () => {
               }}
               onClick={handleSelectChat(item)}
             >
-              <Typography variant='body1'>{chatUser?.name}</Typography>
+              <Typography
+                variant='body1'
+                sx={{
+                  fontWeight: isUnread ? 700 : 400
+                }}
+              >
+                {chatUser?.name}
+              </Typography>
               <Typography
                 variant='body2'
                 sx={{
                   textOverflow: 'ellipsis',
                   whiteSpace: 'nowrap',
-                  overflowX: 'hidden'
+                  overflowX: 'hidden',
+                  fontWeight: isUnread ? 700 : 400
                 }}
               >
-                {item.lastMessage?.[0]?.content}
+                {item.lastMessage?.content}
               </Typography>
-              <Typography variant='overline'>{item.lastMessage?.[0]?.timestamp}</Typography>
+              <Typography
+                variant='overline'
+                sx={{
+                  fontWeight: isUnread ? 700 : 400
+                }}
+              >
+                {formatDate(dayjs(item.lastMessage?.timestamp))}
+              </Typography>
             </Grid>
           )
         })}

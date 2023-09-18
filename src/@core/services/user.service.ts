@@ -1,4 +1,4 @@
-import { addDoc, collection, doc, documentId, getDoc, getDocs, query, where } from 'firebase/firestore'
+import { addDoc, collection, doc, documentId, getDoc, getDocs, query, updateDoc, where } from 'firebase/firestore'
 import { CreateUser, User } from 'src/@core/types/User'
 import { db } from 'src/firebase'
 
@@ -57,6 +57,11 @@ class UserService {
     })
 
     return users
+  }
+
+  async update(currentUserId: string, updateUser: Partial<User>) {
+    const docRef = doc(db, this.COLLECTION_NAME, currentUserId)
+    await updateDoc(docRef, updateUser)
   }
 }
 

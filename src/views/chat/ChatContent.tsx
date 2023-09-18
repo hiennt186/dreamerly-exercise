@@ -6,6 +6,8 @@ import { useAuthContext } from 'src/@core/context/authContext'
 import { useAppDispatch, useAppSelector } from 'src/@core/hooks/redux'
 import { getMessagesByChatId } from 'src/@core/slices/chat'
 import ChatBox from './ChatBox'
+import { formatDate } from 'src/@core/utils/date'
+import dayjs from 'dayjs'
 
 const ChatContent = () => {
   const { currentUser } = useAuthContext()
@@ -65,7 +67,7 @@ const ChatContent = () => {
                   color: isSender ? 'white' : 'black'
                 }}
               >
-                {item.timestamp}
+                {formatDate(dayjs(item.timestamp))}
               </Typography>
             </Grid>
           )

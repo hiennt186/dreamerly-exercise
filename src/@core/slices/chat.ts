@@ -1,120 +1,149 @@
 import { PayloadAction, createAsyncThunk, createSlice } from '@reduxjs/toolkit'
 import chatService from '../services/chat.service'
 import userService from '../services/user.service'
-import { Chat, CreateChat, Message } from '../types/Chat'
+import { Convention, Message } from '../types/Chat'
 import { User } from '../types/User'
 import { RootState } from 'src/store'
 
 export interface ChatState {
-  selectedChat: Partial<Chat> | null
-  isLoadingChatList: boolean
-  chatList: Chat[]
+  selectedConvention: Partial<Convention> | null
+  isLoadingConventionList: boolean
+  conventionList: Convention[]
   isLoadingMessageList: boolean
   messageList: Message[]
   isLoadingUserList: boolean
   userList: User[]
+  error: string
 }
 
 const initialState: ChatState = {
-  selectedChat: null,
-  isLoadingChatList: true,
-  chatList: [],
+  selectedConvention: null,
+  isLoadingConventionList: true,
+  conventionList: [],
   isLoadingMessageList: true,
   messageList: [],
   isLoadingUserList: true,
-  userList: []
+  userList: [],
+  error: ''
 }
 
-export const createNewChat = createAsyncThunk(
-  'chats/createNewChat',
-  async (createChat: CreateChat): Promise<Partial<Chat>> => {
-    const participants = await Promise.all(createChat.participant_ids.map(id => userService.get(id)))
+export const getConventonsByUserId = createAsyncThunk(
+  'chats/getConventonsByUserId',
+  async (userId: string, thunkAPI) => {
+    try {
+      const conventions = await chatService.getConventionsByUserId(userId)
 
-    return {
-      participant_ids: createChat.participant_ids,
-      participants: participants.filter(item => item !== null) as User[]
-    }
-  }
-)
+      for (const key in conventions) {
+        if (Object.prototype.hasOwnProperty.call(conventions, key)) {
+          const element = conventions[key]
 
-export const getChatsByParticipantId = createAsyncThunk(
-  'chats/getChatsByParticipantId',
-  async (participantId: string) => {
-    const chats = await chatService.getByParticipantId(participantId)
+          const chatUserId = element.user_ids.find(id => id != userId)
+          if (chatUserId) {
+            element.chatUser = await userService.get(chatUserId)
+          }
 
-    for (const key in chats) {
-      if (Object.prototype.hasOwnProperty.call(chats, key)) {
-        const element = chats[key]
-
-        const participants = await Promise.all(element.participant_ids.map(id => userService.get(id)))
-        element.participants = participants.filter(item => item !== null) as User[]
-
-        const lastMessage = await chatService.getLastMessagesByChatId(element.id)
-        element.lastMessage = lastMessage
+          const lastMessage = await chatService.getLastMessagesByConventionId(element.id)
+          element.lastMessage = lastMessage
+        }
       }
-    }
 
-    return chats
+      return conventions
+    } catch (error: any) {
+      return thunkAPI.rejectWithValue(error.message)
+    }
   }
 )
 
-export const getMessagesByChatId = createAsyncThunk('chats/getMessagesByChatId', async (chatId: string) => {
-  const messages = await chatService.getMessagesByChatId(chatId)
+export const getMessagesByConventionId = createAsyncThunk(
+  'chats/getMessagesByConventionId',
+  async (conventionId: string, thunkAPI) => {
+    try {
+      const messages = await chatService.getMessagesByConventionId(conventionId)
 
-  return messages
-})
+      return messages
+    } catch (error: any) {
+      return thunkAPI.rejectWithValue(error.message)
+    }
+  }
+)
 
 export const getUsersForChat = createAsyncThunk('chats/getUsersForChat', async (currentUserId: string, thunkAPI) => {
-  const state = thunkAPI.getState() as RootState
-  console.log({ state })
-  const participantIds = state.chat.chatList.reduce((result: string[], item) => {
-    return result.concat(item.participant_ids)
-  }, [])
-  const users = await userService.getForChat(currentUserId, participantIds)
+  try {
+    const state = thunkAPI.getState() as RootState
 
-  return users
+    const userIds = state.chat.conventionList.map(item => item.chatUser?.id)
+
+    const users = await userService.getList()
+
+    return users.filter(user => user.id != currentUserId && !userIds.includes(user.id))
+  } catch (error: any) {
+    return thunkAPI.rejectWithValue(error.message)
+  }
 })
 
 export const chatSlice = createSlice({
   name: 'chats',
   initialState,
   reducers: {
-    setSelectedChat: (state, action: PayloadAction<Partial<Chat>>) => {
-      state.selectedChat = action.payload
+    setSelectedConvention: (state, action: PayloadAction<Partial<Convention>>) => {
+      state.selectedConvention = action.payload
     },
     setMessageList: (state, action: PayloadAction<Message[]>) => {
       state.messageList = action.payload
+    },
+    setUserList: (state, action: PayloadAction<User[]>) => {
+      state.userList = action.payload
     }
   },
   extraReducers: builder => {
-    builder.addCase(createNewChat.fulfilled, (state, action) => {
-      state.selectedChat = action.payload
+    builder.addCase(getConventonsByUserId.pending, state => {
+      state.isLoadingConventionList = true
+      state.error = ''
     })
-    builder.addCase(getChatsByParticipantId.pending, state => {
-      state.isLoadingChatList = true
+    builder.addCase(getConventonsByUserId.fulfilled, (state, action) => {
+      state.conventionList = action.payload
+      state.isLoadingConventionList = false
+      state.error = ''
     })
-    builder.addCase(getChatsByParticipantId.fulfilled, (state, action) => {
-      state.chatList = action.payload
-      state.isLoadingChatList = false
+    builder.addCase(getConventonsByUserId.rejected, (state, action) => {
+      state.conventionList = []
+      state.isLoadingConventionList = false
+      state.error = action.payload as string
     })
-    builder.addCase(getMessagesByChatId.pending, state => {
+
+    builder.addCase(getMessagesByConventionId.pending, state => {
       state.isLoadingMessageList = true
+      state.error = ''
     })
-    builder.addCase(getMessagesByChatId.fulfilled, (state, action) => {
+    builder.addCase(getMessagesByConventionId.fulfilled, (state, action) => {
       state.messageList = action.payload
       state.isLoadingMessageList = false
+      state.error = ''
     })
+    builder.addCase(getMessagesByConventionId.rejected, (state, action) => {
+      state.messageList = []
+      state.isLoadingMessageList = false
+      state.error = action.payload as string
+    })
+
     builder.addCase(getUsersForChat.pending, state => {
       state.isLoadingUserList = true
+      state.error = ''
     })
     builder.addCase(getUsersForChat.fulfilled, (state, action) => {
       state.userList = action.payload
       state.isLoadingUserList = false
+      state.error = ''
+    })
+    builder.addCase(getUsersForChat.rejected, (state, action) => {
+      state.userList = []
+      state.isLoadingUserList = false
+      state.error = action.payload as string
     })
   }
 })
 
 // Action creators are generated for each case reducer function
-export const { setSelectedChat, setMessageList } = chatSlice.actions
+export const { setSelectedConvention, setMessageList, setUserList } = chatSlice.actions
 
 export default chatSlice.reducer

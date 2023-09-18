@@ -31,10 +31,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setIsLoading(false)
 
         const uid = user.uid
-        const users = await userService.getByFirebaseId(uid)
-        if (users.length) {
-          setCurrentUser(users[0])
-        }
+        const userDoc = await userService.getByFirebaseId(uid)
+        setCurrentUser(userDoc)
       } else {
         setIsAuthenticated(false)
         setIsLoading(false)

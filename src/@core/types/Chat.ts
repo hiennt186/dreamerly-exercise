@@ -1,31 +1,24 @@
 import { User } from './User'
 
-export interface Chat {
+export interface Convention {
   id: string
-  participant_ids: string[]
+  user_ids: string[]
 
-  participants?: User[]
-  lastMessage?: Message[]
-}
-
-export interface CreateChat {
-  participant_ids: string[]
+  chatUser?: User | null
+  lastMessage?: Message | null
 }
 
 export interface Message {
   id: string
+  convention_id: string
   sender_id: string
   content: string
   timestamp: string
-  read: boolean
-
-  chat?: Chat
-  sender?: User
 }
 
-export interface CreateMessage {
-  sender_id: string
-  content: string
-  timestamp: string
-  read: boolean
+export interface UnreadMessage {
+  id: string
+  user_id: string
+  last_read_timestamp: string
+  is_notified: boolean
 }

@@ -1,46 +1,43 @@
 import { addDoc, collection, getDocs, limit, orderBy, query, where } from 'firebase/firestore'
 import { db } from 'src/firebase'
-import { Chat, CreateChat, CreateMessage, Message } from '../types/Chat'
+import { collections } from '../constants/firestore'
+import { Convention, Message } from '../types/Chat'
 
 class ChatService {
-  COLLECTION_NAME = 'chats'
-  MESSAGE_COLLECTION_NAME = 'messages'
-
-  async create(createChat: CreateChat) {
-    const docRef = await addDoc(collection(db, this.COLLECTION_NAME), createChat)
+  async createConvention(convention: Partial<Convention>) {
+    const docRef = await addDoc(collection(db, collections.CONVENTIONS), convention)
 
     return docRef.id
   }
 
-  async createMessage(chatId: string, createMessage: CreateMessage) {
-    const collectionRef = collection(db, `${this.COLLECTION_NAME}/${chatId}/${this.MESSAGE_COLLECTION_NAME}`)
-    const docRef = await addDoc(collectionRef, createMessage)
+  async getConventionsByUserId(userId: string) {
+    const chats: Convention[] = []
 
-    return docRef.id
-  }
-
-  async getByParticipantId(participantId: string) {
-    const chats: Chat[] = []
-
-    const collectionRef = collection(db, this.COLLECTION_NAME)
-    const q = query(collectionRef, where('participant_ids', 'array-contains', participantId))
+    const collectionRef = collection(db, collections.CONVENTIONS)
+    const q = query(collectionRef, where('user_ids', 'array-contains', userId))
     const querySnapshot = await getDocs(q)
 
     querySnapshot.forEach(doc => {
       chats.push({
         id: doc.id,
         ...doc.data()
-      } as Chat)
+      } as Convention)
     })
 
     return chats
   }
 
-  async getMessagesByChatId(chatId: string) {
+  async createMessage(message: Partial<Message>) {
+    const docRef = await addDoc(collection(db, collections.MESSAGES), message)
+
+    return docRef.id
+  }
+
+  async getMessagesByConventionId(conventionId: string) {
     const messages: Message[] = []
 
-    const collectionRef = collection(db, `${this.COLLECTION_NAME}/${chatId}/${this.MESSAGE_COLLECTION_NAME}`)
-    const q = query(collectionRef, orderBy('timestamp', 'desc'))
+    const collectionRef = collection(db, collections.MESSAGES)
+    const q = query(collectionRef, where('convention_id', '==', conventionId), orderBy('timestamp', 'desc'))
     const querySnapshot = await getDocs(q)
 
     querySnapshot.forEach(doc => {
@@ -53,21 +50,21 @@ class ChatService {
     return messages
   }
 
-  async getLastMessagesByChatId(chatId: string) {
-    const messages: Message[] = []
-
-    const collectionRef = collection(db, `${this.COLLECTION_NAME}/${chatId}/${this.MESSAGE_COLLECTION_NAME}`)
-    const q = query(collectionRef, orderBy('timestamp', 'desc'), limit(1))
+  async getLastMessagesByConventionId(conventionId: string) {
+    const collectionRef = collection(db, collections.MESSAGES)
+    const q = query(collectionRef, where('convention_id', '==', conventionId), orderBy('timestamp', 'desc'), limit(1))
     const querySnapshot = await getDocs(q)
 
-    querySnapshot.forEach(doc => {
-      messages.push({
-        id: doc.id,
-        ...doc.data()
-      } as Message)
-    })
+    if (!querySnapshot.docs.length) {
+      return null
+    }
 
-    return messages
+    const docRef = querySnapshot.docs[0]
+
+    return {
+      id: docRef.id,
+      ...docRef.data()
+    } as Message
   }
 }
 

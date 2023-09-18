@@ -5,7 +5,8 @@ import Plus from 'mdi-material-ui/Plus'
 import { useCallback, useEffect, useState } from 'react'
 import { useAuthContext } from 'src/@core/context/authContext'
 import { useAppDispatch, useAppSelector } from 'src/@core/hooks/redux'
-import { createNewChat, getUsersForChat, setMessageList } from 'src/@core/slices/chat'
+import userService from 'src/@core/services/user.service'
+import { getUsersForChat, setMessageList, setSelectedConvention, setUserList } from 'src/@core/slices/chat'
 
 const NewChatButton = () => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
@@ -28,16 +29,18 @@ const NewChatButton = () => {
   }, [fetchUsers, open])
 
   const handleClickNewChat = async (event: React.MouseEvent<HTMLButtonElement>) => {
-    setAnchorEl(event.currentTarget)
     if (currentUser?.id) {
       dispatch(getUsersForChat(currentUser?.id))
     }
+    setAnchorEl(event.currentTarget)
   }
-  const handleCreateChat = (userId: string) => async () => {
-    if (currentUser) {
+
+  const handleSelectUser = (userId: string) => async () => {
+    if (currentUser?.id) {
       dispatch(
-        createNewChat({
-          participant_ids: [currentUser.id, userId]
+        setSelectedConvention({
+          user_ids: [currentUser?.id, userId],
+          chatUser: await userService.get(userId)
         })
       )
       dispatch(setMessageList([]))
@@ -46,6 +49,7 @@ const NewChatButton = () => {
   }
   const handleClose = () => {
     setAnchorEl(null)
+    dispatch(setUserList([]))
   }
 
   return (
@@ -55,7 +59,7 @@ const NewChatButton = () => {
       </Button>
       <Menu anchorEl={anchorEl} open={open} onClose={handleClose}>
         {users.map(user => (
-          <MenuItem onClick={handleCreateChat(user.id)} key={user.id}>
+          <MenuItem onClick={handleSelectUser(user.id)} key={user.id}>
             <Box>
               <Typography variant='body1'>{user.name}</Typography>
               <Typography variant='body2'>{user.email}</Typography>

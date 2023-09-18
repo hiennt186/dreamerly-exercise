@@ -1,32 +1,30 @@
 // ** MUI Imports
+import { Box } from '@mui/material'
 import Grid from '@mui/material/Grid'
 import Typography from '@mui/material/Typography'
-import { useCallback, useEffect } from 'react'
+import dayjs from 'dayjs'
+import { useEffect } from 'react'
 import { useAuthContext } from 'src/@core/context/authContext'
 import { useAppDispatch, useAppSelector } from 'src/@core/hooks/redux'
-import { getChatsByParticipantId, setSelectedChat } from 'src/@core/slices/chat'
-import { Chat } from 'src/@core/types/Chat'
+import { getConventonsByUserId, setSelectedConvention } from 'src/@core/slices/chat'
+import { Convention } from 'src/@core/types/Chat'
+import { formatDate } from 'src/@core/utils/date'
 import NewChatButton from './NewChatButton'
-import { Box } from '@mui/material'
 
 const ChatList = () => {
   const { currentUser } = useAuthContext()
   const dispatch = useAppDispatch()
-  const chatList = useAppSelector(state => state.chat.chatList)
-  const selectedChat = useAppSelector(state => state.chat.selectedChat)
-
-  const fetchChats = useCallback(async () => {
-    if (currentUser) {
-      dispatch(getChatsByParticipantId(currentUser.id))
-    }
-  }, [currentUser, dispatch])
+  const conventionList = useAppSelector(state => state.chat.conventionList)
+  const selectedConvention = useAppSelector(state => state.chat.selectedConvention)
 
   useEffect(() => {
-    fetchChats()
-  }, [fetchChats])
+    if (currentUser?.id) {
+      dispatch(getConventonsByUserId(currentUser.id))
+    }
+  }, [currentUser?.id, dispatch])
 
-  const handleSelectChat = (chat: Chat) => async () => {
-    dispatch(setSelectedChat(chat))
+  const handleSelectConvention = (convention: Convention) => async () => {
+    dispatch(setSelectedConvention(convention))
   }
 
   return (
@@ -53,9 +51,7 @@ const ChatList = () => {
         }}
         gap={2}
       >
-        {chatList.map(item => {
-          const chatUser = item?.participants?.find(participant => participant.id !== currentUser?.id)
-
+        {conventionList.map(item => {
           return (
             <Grid
               item
@@ -66,14 +62,14 @@ const ChatList = () => {
                 '&:hover': {
                   bgcolor: 'grey.100'
                 },
-                bgcolor: item.id === selectedChat?.id ? 'grey.100' : 'white',
+                bgcolor: item.id === selectedConvention?.id ? 'grey.100' : 'white',
                 transition: 0.5,
                 px: 4,
                 py: 2
               }}
-              onClick={handleSelectChat(item)}
+              onClick={handleSelectConvention(item)}
             >
-              <Typography variant='body1'>{chatUser?.name}</Typography>
+              <Typography variant='body1'>{item.chatUser?.name}</Typography>
               <Typography
                 variant='body2'
                 sx={{
@@ -82,9 +78,9 @@ const ChatList = () => {
                   overflowX: 'hidden'
                 }}
               >
-                {item.lastMessage?.[0]?.content}
+                {item.lastMessage?.content}
               </Typography>
-              <Typography variant='overline'>{item.lastMessage?.[0]?.timestamp}</Typography>
+              <Typography variant='overline'>{formatDate(dayjs(item.lastMessage?.timestamp))}</Typography>
             </Grid>
           )
         })}

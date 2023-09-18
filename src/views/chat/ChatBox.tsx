@@ -1,5 +1,6 @@
 // ** MUI Imports
 import { Box, IconButton, TextField } from '@mui/material'
+import dayjs from 'dayjs'
 import { Form, Formik, FormikHelpers, FormikProps } from 'formik'
 import { Send } from 'mdi-material-ui'
 import { Channel } from 'pusher-js'
@@ -7,7 +8,7 @@ import { useEffect, useState } from 'react'
 import { useAuthContext } from 'src/@core/context/authContext'
 import { useAppDispatch, useAppSelector } from 'src/@core/hooks/redux'
 import chatService from 'src/@core/services/chat.service'
-import { getChatsByParticipantId, getMessagesByChatId, setSelectedChat } from 'src/@core/slices/chat'
+import { getConventonsByUserId, getMessagesByConventionId, setSelectedConvention } from 'src/@core/slices/chat'
 import { handleError } from 'src/@core/utils/error'
 import { pusher } from 'src/pusher'
 
@@ -21,14 +22,13 @@ const initialValues = {
 
 const ChatBox = () => {
   const { currentUser } = useAuthContext()
-  const selectedChat = useAppSelector(state => state.chat.selectedChat)
+  const selectedConvention = useAppSelector(state => state.chat.selectedConvention)
   const dispatch = useAppDispatch()
   const [channel, setChannel] = useState<Channel | null>(null)
 
   useEffect(() => {
     if (currentUser?.id) {
-      const chatUser = selectedChat?.participants?.find(participant => participant.id !== currentUser?.id)
-      const channelName = `private-user-${chatUser?.id}`
+      const channelName = `private-user-${selectedConvention?.chatUser?.id}`
       const channel = pusher.subscribe(channelName)
 
       if (channel) {
@@ -39,37 +39,34 @@ const ChatBox = () => {
         }
       }
     }
-  }, [currentUser?.id, dispatch, selectedChat?.id, selectedChat?.participants])
+  }, [currentUser?.id, dispatch, selectedConvention?.chatUser?.id, selectedConvention?.id])
 
   const handleSubmit = async (values: ChatFormValues, actions: FormikHelpers<ChatFormValues>) => {
-    console.log('handleSubmit')
     try {
-      if (selectedChat?.participant_ids && currentUser) {
-        let chatId = selectedChat.id
-        if (!chatId) {
-          chatId = await chatService.create({
-            participant_ids: selectedChat.participant_ids
+      if (currentUser?.id) {
+        let conventionId = selectedConvention?.id
+        if (!conventionId) {
+          conventionId = await chatService.createConvention({
+            user_ids: selectedConvention?.user_ids
           })
           dispatch(
-            setSelectedChat({
-              ...selectedChat,
-              id: chatId
+            setSelectedConvention({
+              ...selectedConvention,
+              id: conventionId
             })
           )
         }
 
-        await chatService.createMessage(chatId, {
+        await chatService.createMessage({
+          convention_id: conventionId,
           sender_id: currentUser?.id,
           content: values.content,
-          timestamp: new Date().toISOString(),
-          read: false
+          timestamp: dayjs().toISOString()
         })
 
         actions.resetForm()
-
-        dispatch(getMessagesByChatId(chatId))
-        dispatch(getChatsByParticipantId(currentUser.id))
-
+        dispatch(getMessagesByConventionId(conventionId))
+        dispatch(getConventonsByUserId(currentUser.id))
         if (channel) {
           channel.trigger('client-new-message', {})
         }

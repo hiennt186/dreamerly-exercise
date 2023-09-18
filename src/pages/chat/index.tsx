@@ -29,7 +29,7 @@ const ChatPage = withAuth(() => {
         pusher.unsubscribe(channelName)
       }
     }
-  }, [currentUser?.id, dispatch])
+  }, [currentUser?.id])
 
   useEffect(() => {
     if (currentUser?.id) {
@@ -38,10 +38,10 @@ const ChatPage = withAuth(() => {
       if (channel) {
         channel.bind(eventName, function () {
           if (currentUser?.id) {
-            dispatch(getConventonsByUserId(currentUser.id))
+            dispatch(getConventonsByUserId(currentUser?.id))
           }
           if (selectedConvention?.id) {
-            dispatch(getMessagesByConventionId(selectedConvention.id))
+            dispatch(getMessagesByConventionId(selectedConvention?.id))
           }
         })
 

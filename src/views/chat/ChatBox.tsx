@@ -39,7 +39,7 @@ const ChatBox = () => {
         }
       }
     }
-  }, [currentUser?.id, dispatch, selectedConvention?.chatUser?.id, selectedConvention?.id])
+  }, [currentUser?.id, selectedConvention?.chatUser?.id])
 
   const handleSubmit = async (values: ChatFormValues, actions: FormikHelpers<ChatFormValues>) => {
     try {

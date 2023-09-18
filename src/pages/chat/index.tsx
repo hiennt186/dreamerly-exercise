@@ -12,7 +12,7 @@ import ChatContent from 'src/views/chat/ChatContent'
 import ChatList from 'src/views/chat/ChatList'
 
 const ChatPage = withAuth(() => {
-  const selectedChat = useAppSelector(state => state.chat.selectedConvention)
+  const selectedConvention = useAppSelector(state => state.chat.selectedConvention)
   const { currentUser } = useAuthContext()
   const dispatch = useAppDispatch()
   const error = useAppSelector(state => state.chat.error)
@@ -28,8 +28,8 @@ const ChatPage = withAuth(() => {
           if (currentUser?.id) {
             dispatch(getConventonsByUserId(currentUser.id))
           }
-          if (selectedChat?.id) {
-            dispatch(getMessagesByConventionId(selectedChat.id))
+          if (selectedConvention?.id) {
+            dispatch(getMessagesByConventionId(selectedConvention.id))
           }
         })
 
@@ -39,7 +39,7 @@ const ChatPage = withAuth(() => {
         }
       }
     }
-  }, [currentUser?.id, dispatch, selectedChat?.id])
+  }, [currentUser?.id, dispatch, selectedConvention?.id])
 
   useEffect(() => {
     if (error) {
@@ -53,7 +53,7 @@ const ChatPage = withAuth(() => {
         <Box sx={{ width: 360 }}>
           <ChatList />
         </Box>
-        <Box sx={{ width: '100%' }}>{selectedChat && <ChatContent />}</Box>
+        <Box sx={{ width: '100%' }}>{selectedConvention && <ChatContent />}</Box>
       </Box>
     </Card>
   )

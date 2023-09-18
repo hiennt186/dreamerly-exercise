@@ -11,20 +11,20 @@ class ChatService {
   }
 
   async getConventionsByUserId(userId: string) {
-    const chats: Convention[] = []
+    const conventions: Convention[] = []
 
     const collectionRef = collection(db, collections.CONVENTIONS)
     const q = query(collectionRef, where('user_ids', 'array-contains', userId))
     const querySnapshot = await getDocs(q)
 
     querySnapshot.forEach(doc => {
-      chats.push({
+      conventions.push({
         id: doc.id,
         ...doc.data()
       } as Convention)
     })
 
-    return chats
+    return conventions
   }
 
   async createMessage(message: Partial<Message>) {

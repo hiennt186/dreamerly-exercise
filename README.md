@@ -2,7 +2,7 @@
 
 ## Introduction
 
-This is a project developed as an exercise to implement the sign-up, sign-in, and one-on-one chat functionality in a web application.
+This is a coding exercise that involves implementing essential features such as sign-up, sign-in, and one-on-one chat functionality. The project is built upon the [Materio Free React NextJS Admin Template](https://github.com/themeselection/materio-mui-react-nextjs-admin-template-free) as a template.
 
 ## Installation
 

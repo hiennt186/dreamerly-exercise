@@ -1,3 +1,4 @@
 export const handleError = (error: Error | string) => {
-  console.log({ error })
+  // TODO: Display error messages and push them to a logging service like Sentry.
+  console.error({ error })
 }

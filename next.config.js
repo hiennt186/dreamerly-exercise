@@ -14,5 +14,14 @@ module.exports = {
     }
 
     return config
+  },
+  redirects() {
+    return  [
+      {
+        source: '/',
+        destination: '/chat',
+        permanent: true,
+      },
+    ]
   }
 }

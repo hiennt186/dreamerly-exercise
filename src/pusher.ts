@@ -1,7 +1,7 @@
 import Pusher from 'pusher-js'
 import { pusherConfig } from './configs/pusherConfig'
 
-// Pusher.logToConsole = true
+Pusher.logToConsole = true
 
 export const pusher = new Pusher(pusherConfig.appKey, {
   cluster: pusherConfig.cluster,

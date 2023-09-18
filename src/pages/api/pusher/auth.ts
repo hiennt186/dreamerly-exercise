@@ -2,10 +2,10 @@ import { NextApiRequest, NextApiResponse } from 'next/dist/shared/lib/utils'
 import Pusher from 'pusher'
 
 const pusher = new Pusher({
-  appId: '1671352',
-  key: '03ac3f88e2e8a04a08dc',
-  secret: '9b40a8a394ef85a2edf9',
-  cluster: 'ap1',
+  appId: process.env.PUSHER_APP_ID || '',
+  key: process.env.NEXT_PUBLIC_PUSHER_APP_KEY || '',
+  secret: process.env.PUSHER_SECRET || '',
+  cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER || '',
   useTLS: true
 })
 

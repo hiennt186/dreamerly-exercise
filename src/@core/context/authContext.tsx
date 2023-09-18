@@ -5,6 +5,7 @@ import userService from '../services/user.service'
 import { auth } from 'src/firebase'
 import { useRouter } from 'next/router'
 import { NextPage } from 'next'
+import { routes } from '../constants/routes'
 
 export type AuthContextValue = {
   isLoading: boolean
@@ -53,7 +54,7 @@ export const withAuth = (Component: FC): NextPage => {
 
     useEffect(() => {
       if (!isLoading && !isAuthenticated) {
-        router.push('/pages/login')
+        router.push(routes.LOGIN)
       }
     }, [isAuthenticated, isLoading, router])
 
@@ -68,7 +69,7 @@ export const withNonAuth = (Component: FC): NextPage => {
 
     useEffect(() => {
       if (!isLoading && isAuthenticated) {
-        router.push('/')
+        router.push(routes.DASHBOARD)
       }
     }, [isAuthenticated, isLoading, router])
 

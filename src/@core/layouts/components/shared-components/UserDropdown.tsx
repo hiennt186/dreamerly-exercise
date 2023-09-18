@@ -26,6 +26,7 @@ import MessageOutline from 'mdi-material-ui/MessageOutline'
 import { useAuthContext } from 'src/@core/context/authContext'
 import { auth } from 'src/firebase'
 import { handleError } from 'src/@core/utils/error'
+import { routes } from 'src/@core/constants/routes'
 
 // ** Styled Components
 const BadgeContentSpan = styled('span')(({ theme }) => ({
@@ -72,7 +73,7 @@ const UserDropdown = () => {
   const handleLogout = async () => {
     try {
       await signOut(auth)
-      router.push('/pages/login')
+      router.push(routes.LOGIN)
     } catch (error: any) {
       handleError(error)
     }

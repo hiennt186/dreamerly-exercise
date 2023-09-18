@@ -41,6 +41,7 @@ import { handleError } from 'src/@core/utils/error'
 import { auth } from 'src/firebase'
 import FooterIllustrationsV1 from 'src/views/pages/auth/FooterIllustration'
 import * as Yup from 'yup'
+import { routes } from 'src/@core/constants/routes'
 
 interface LoginFormValues {
   email: string
@@ -87,7 +88,7 @@ const LoginPage = withNonAuth(() => {
   const handleSubmit = async (values: LoginFormValues, actions: FormikHelpers<LoginFormValues>) => {
     try {
       await signInWithEmailAndPassword(auth, values.email, values.password)
-      router.push('/')
+      router.push(routes.DASHBOARD)
     } catch (error: any) {
       handleError(error)
     } finally {

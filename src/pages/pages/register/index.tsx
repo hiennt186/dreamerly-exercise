@@ -42,6 +42,7 @@ import { handleError } from 'src/@core/utils/error'
 import { auth } from 'src/firebase'
 import FooterIllustrationsV1 from 'src/views/pages/auth/FooterIllustration'
 import * as Yup from 'yup'
+import { routes } from 'src/@core/constants/routes'
 
 interface RegisterFormValues {
   username: string
@@ -106,7 +107,7 @@ const RegisterPage = withNonAuth(() => {
         email: values.email,
         firebase_id: user.uid
       })
-      router.push('/pages/login')
+      router.push(routes.LOGIN)
     } catch (error) {
       handleError(error as Error)
     } finally {
